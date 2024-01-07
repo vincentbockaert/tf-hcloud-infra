@@ -7,12 +7,10 @@ users:
     shell: /bin/bash
     lock_passwd: true
     ssh_authorized_keys:
-      - ${ssh_authorized_key}
+      - ${defaultSSHPublicKey}
 # disable root over ssh
 disable_root: true
 disable_root_opts: no-port-forwarding,no-agent-forwarding,no-X11-forwarding
-
-
 
 # disable ssh password authentication
 ssh_pwauth: false
@@ -20,7 +18,11 @@ ssh_pwauth: false
 # update packages
 package_update: true
 
+packages:
+  - wireguard
+
 fqdn: ${fqdn}
+prefer_fqdn_over_hostname: true
 
 # SSH CA Certificates set up
 # upload the ca private key and public key to the server
@@ -37,14 +39,12 @@ write_files:
 # ssh host key signing with ca certificates
 runcmd:
   # sign and configure ssh host keys
-  - ssh-keygen -s /etc/ssh/HostCA -I "$(hostname)" -n "$(hostname -I|tr ' ' ',')$(hostname)" -V -5m:+520w -h /etc/ssh/ssh_host_rsa_key.pub /etc/ssh/ssh_host_ecdsa_key.pub /etc/ssh/ssh_host_ed25519_key.pub
+  - ssh-keygen -s /etc/ssh/HostCA -I "$(hostname)" -n "$(hostname -I|tr ' ' ',')$(hostname),${fqdn}" -V -5m:+520w -h /etc/ssh/ssh_host_rsa_key.pub /etc/ssh/ssh_host_ecdsa_key.pub /etc/ssh/ssh_host_ed25519_key.pub
   # configure ca usage on the server
   - echo "@cert-authority * $(cat /etc/ssh/HostCA.pub)" >> /etc/ssh/ssh_known_hosts
   # configure new signed host certificates
   - for i in /etc/ssh/ssh_host*_key-cert.pub; do echo "HostCertificate $i" >>/etc/ssh/sshd_config; done
   # remove the ca private key
-  # in ideal scenario we would build a image in packer with presigned keys ... but Hetzner doesnt support image building afaik
   - rm -f /etc/ssh/HostCA
   # reload sshd to apply changes
   - systemctl reload sshd
-
