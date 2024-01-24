@@ -14,7 +14,3 @@ output "server_names" {
     [for node in hcloud_server.k3s_agent : "${node.name} ==> A ==> ${node.ipv4_address}"]
   )
 }
-
-output "load_balancer_addresses" {
-  value = [hcloud_load_balancer.lb.ipv4, hcloud_load_balancer.lb.ipv6]
-}

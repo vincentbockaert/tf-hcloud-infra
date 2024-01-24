@@ -37,7 +37,7 @@ resource "hcloud_server" "k3s_agent" {
     hcloud_ssh_key.this.id
   ]
   public_net {
-    ipv4_enabled = true # really wish i didnt need this ... but holy f there are too many services IPv4 only and I dont want to a NAT64 service
+    ipv4_enabled = false # really wish i didnt need this ... but holy f there are too many services IPv4 only and I dont want to a NAT64 service
     ipv6_enabled = true
   }
 }

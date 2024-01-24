@@ -40,25 +40,45 @@ op run --env-file .env -- terraform apply plan.out
 First time setup on first k3s **server**:
 
 ```bash
-# requires ipv4 connectivity because GitHub is called in background ... and GitHub is IPv4 only FFS
-# master.k3s.prod.hc.vincentbockaert.xyz being a load balancer listening on 6443 forwarding requests to the k3s server(s) at 6443
-curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="agent" sh -s - --tls-san="master.k3s.prod.hc.vincentbockaert.xyz" --disable-cloud-controller --disable=servicelb --disable=traefik --flannel-backend=wireguard-native --write-kubeconfig-mode=644
-sudo cat /var/lib/rancher/k3s/server/node-token # need this when adding agents
+curl -sfL https://get.k3s.io | sh -s - server \
+--cluster-init \
+--disable-cloud-controller \
+--node-name="$(hostname -f)" \
+--flannel-iface=enp7s0 \
+--kubelet-arg="cloud-provider=external" \
+--secrets-encryption \
+--disable=traefik \
+--tls-san='server0.k3s.prod.hc.vincentbockaert.xyz' \
+--tls-san='server1.k3s.prod.hc.vincentbockaert.xyz' \
+--tls-san='server2.k3s.prod.hc.vincentbockaert.xyz' \
+--tls-san='master.k3s.prod.hc.vincentbockaert.xyz' \
+--token='SECRET_HERE'
 ```
 
-Then on the agent:
+then to add other server nodes:
 
 ```bash
-# verify connectivity to the master endpoint
-curl -v --insecure https://master.k3s.prod.hc.vincentbockaert.xyz:6443
-# install k3s-agent service and join the cluster
-curl sfL https://get.k3s.io | INSTALL_K3S_EXEC="agent --server 'https://master.k3s.prod.hc.vincentbockaert.xyz:6443' --token 'ULTRA_SUPER_SECRET_TOKEN'" sh -s -
+curl -sfL https://get.k3s.io | sh -s - server \
+	--server https://PRIVATE_IP_OF_FIRST_SERVER_NODE:6443 \
+    --disable-cloud-controller \
+    --node-name="$(hostname -f)" \
+    --flannel-iface=enp7s0 \
+    --kubelet-arg="cloud-provider=external" \
+    --secrets-encryption \
+    --disable=traefik \
+    --tls-san='server0.k3s.prod.hc.vincentbockaert.xyz' \
+    --tls-san='server1.k3s.prod.hc.vincentbockaert.xyz' \
+    --tls-san='server2.k3s.prod.hc.vincentbockaert.xyz' \
+    --tls-san='master.k3s.prod.hc.vincentbockaert.xyz' \
+    --token='SERVER_HERE'
 ```
 
 Lastly, you can verify the nodes on the server machine:
 
 ```bash
 sudo kubectl get nodes
+# can fetch a starting kubeconfig:
+sudo cat /etc/rancher/k3s/k3s.yaml
 ```
 
 Which should return something similar to the below:
