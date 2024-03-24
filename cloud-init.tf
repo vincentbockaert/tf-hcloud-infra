@@ -23,7 +23,7 @@ data "template_file" "k3s_agent" {
     defaultSSHPublicKey = hcloud_ssh_key.this.public_key
     HostCAPrivateKey    = base64encode(tls_private_key.ca_host_key.private_key_openssh)
     HostCAPublicKey     = tls_private_key.ca_host_key.public_key_openssh
-    fqdn                = "agent${count.index}.k3s.${terraform.workspace}.hc.vincentbockaert.xyz"
+    fqdn                = "agent${count.index}.k3s.${terraform.workspace}.${var.base_domain}"
   }
 }
 
@@ -52,6 +52,6 @@ data "template_file" "k3s_server" {
     defaultSSHPublicKey = hcloud_ssh_key.this.public_key
     HostCAPrivateKey    = base64encode(tls_private_key.ca_host_key.private_key_openssh)
     HostCAPublicKey     = tls_private_key.ca_host_key.public_key_openssh
-    fqdn                = "server${count.index}.k3s.${terraform.workspace}.hc.vincentbockaert.xyz"
+    fqdn                = "server${count.index}.k3s.${terraform.workspace}.${var.base_domain}"
   }
 }
