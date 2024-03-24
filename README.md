@@ -54,9 +54,9 @@ k3s_cluster:
   children:
     server:
       hosts:
-        '2a01:4f8:1c1e:93d1::1'
-        '2a01:4f8:c2c:9877::1'
-        '2a01:4f8:c2c:c272::1'
+        2a01:4f8:1c1e:93d1::1:
+        2a01:4f8:c2c:9877::1:
+        2a01:4f8:c2c:c272::1:
     agent:
       hosts:
         # 192.16.35.12:
